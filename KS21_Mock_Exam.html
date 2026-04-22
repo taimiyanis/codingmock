@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KS21 — Mock Exam | ESCP Business School</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f4f8; color: #1a2332; min-height: 100vh; }
+
+  /* HEADER */
+  .header { background: linear-gradient(135deg, #1F4E79 0%, #2E75B6 100%); color: white; padding: 32px 40px; }
+  .header h1 { font-size: 28px; font-weight: 700; margin-bottom: 6px; }
+  .header p { opacity: 0.85; font-size: 15px; }
+  .header .meta { display: flex; gap: 24px; margin-top: 16px; flex-wrap: wrap; }
+  .header .badge { background: rgba(255,255,255,0.15); border-radius: 20px; padding: 6px 16px; font-size: 13px; font-weight: 600; }
+  .header .badge.warn { background: #C00000; }
+
+  /* PROGRESS */
+  .progress-bar { background: #dce8f5; height: 6px; }
+  .progress-fill { background: #2E75B6; height: 6px; width: 0%; transition: width 0.4s ease; }
+
+  /* MAIN */
+  .container { max-width: 860px; margin: 0 auto; padding: 32px 20px; }
+
+  /* SCORE PANEL */
+  #score-panel { background: white; border-radius: 12px; padding: 24px 32px; margin-bottom: 28px; display: flex; gap: 32px; align-items: center; box-shadow: 0 2px 12px rgba(0,0,0,0.08); flex-wrap: wrap; }
+  .score-item { text-align: center; }
+  .score-item .num { font-size: 36px; font-weight: 800; color: #1F4E79; line-height: 1; }
+  .score-item .label { font-size: 12px; color: #666; text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
+  #score-panel .actions { margin-left: auto; display: flex; gap: 10px; flex-wrap: wrap; }
+  .btn { padding: 10px 20px; border-radius: 8px; border: none; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+  .btn-primary { background: #2E75B6; color: white; }
+  .btn-primary:hover { background: #1F4E79; }
+  .btn-secondary { background: #f0f4f8; color: #1F4E79; border: 2px solid #2E75B6; }
+  .btn-secondary:hover { background: #dce8f5; }
+  .btn-success { background: #375623; color: white; }
+  .btn-success:hover { background: #254017; }
+
+  /* QUESTION CARD */
+  .question-card {
+    background: white;
+    border-radius: 12px;
+    padding: 28px 32px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+    border-left: 5px solid #CBD5E1;
+    transition: border-color 0.3s;
+  }
+  .question-card.answered { border-left-color: #2E75B6; }
+  .question-card.correct { border-left-color: #375623; background: #f6fbf3; }
+  .question-card.incorrect { border-left-color: #C00000; background: #fff8f8; }
+
+  .q-header { display: flex; align-items: baseline; gap: 12px; margin-bottom: 16px; }
+  .q-num { background: #1F4E79; color: white; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; flex-shrink: 0; }
+  .q-title { font-size: 16px; font-weight: 700; color: #1F4E79; flex: 1; }
+  .q-pts { font-size: 13px; color: #888; font-weight: 600; white-space: nowrap; }
+  .q-pts .pts-val { color: #2E75B6; font-weight: 700; }
+
+  .q-text { font-size: 15px; line-height: 1.65; margin-bottom: 18px; color: #2d3748; }
+  .q-hint { font-size: 13px; color: #666; font-style: italic; margin-bottom: 12px; }
+
+  /* CODE BLOCK */
+  pre.code-block {
+    background: #1a2332; color: #e2e8f0;
+    border-radius: 8px; padding: 16px 20px;
+    font-family: 'Courier New', monospace; font-size: 13px;
+    line-height: 1.7; margin: 12px 0; overflow-x: auto;
+    white-space: pre;
+  }
+  pre.code-block .kw { color: #81a1c1; font-weight: 700; }
+  pre.code-block .str { color: #a3be8c; }
+  pre.code-block .num { color: #d08770; }
+  pre.code-block .cmt { color: #616e88; font-style: italic; }
+
+  /* OPTIONS */
+  .options { display: flex; flex-direction: column; gap: 10px; }
+  .option-label {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 12px 16px; border-radius: 8px;
+    border: 2px solid #e2e8f0; cursor: pointer;
+    transition: all 0.2s; font-size: 14px; line-height: 1.5;
+    background: #fafbfc;
+  }
+  .option-label:hover { border-color: #2E75B6; background: #eff6ff; }
+  .option-label input[type=radio] { margin-top: 2px; accent-color: #2E75B6; flex-shrink: 0; }
+  .option-label.selected { border-color: #2E75B6; background: #eff6ff; }
+  .option-label.correct-ans { border-color: #375623; background: #f0fdf4; font-weight: 600; }
+  .option-label.wrong-ans { border-color: #C00000; background: #fff5f5; text-decoration: line-through; color: #999; }
+  .option-letter { font-weight: 700; color: #2E75B6; min-width: 20px; }
+
+  /* TEXT INPUT */
+  .text-input-wrap { position: relative; }
+  input.text-answer {
+    width: 100%; padding: 12px 16px; border-radius: 8px;
+    border: 2px solid #e2e8f0; font-size: 15px;
+    font-family: 'Courier New', monospace;
+    transition: border-color 0.2s;
+  }
+  input.text-answer:focus { outline: none; border-color: #2E75B6; }
+  input.text-answer.correct-input { border-color: #375623; background: #f0fdf4; }
+  input.text-answer.wrong-input { border-color: #C00000; background: #fff5f5; }
+
+  /* CHECK BUTTON & FEEDBACK */
+  .q-footer { display: flex; align-items: center; gap: 12px; margin-top: 16px; flex-wrap: wrap; }
+  .check-btn {
+    padding: 9px 22px; background: #2E75B6; color: white;
+    border: none; border-radius: 8px; font-size: 14px; font-weight: 600;
+    cursor: pointer; transition: background 0.2s;
+  }
+  .check-btn:hover { background: #1F4E79; }
+  .check-btn:disabled { background: #94a3b8; cursor: not-allowed; }
+
+  .feedback {
+    display: none; padding: 10px 16px; border-radius: 8px;
+    font-size: 14px; font-weight: 500; flex: 1;
+  }
+  .feedback.correct { background: #f0fdf4; color: #375623; border: 1px solid #86efac; display: block; }
+  .feedback.incorrect { background: #fff5f5; color: #991b1b; border: 1px solid #fca5a5; display: block; }
+
+  /* EXPLANATION */
+  .explanation {
+    display: none; background: #eff6ff; border-left: 4px solid #2E75B6;
+    padding: 14px 18px; border-radius: 0 8px 8px 0;
+    margin-top: 14px; font-size: 13.5px; line-height: 1.65;
+  }
+  .explanation.visible { display: block; }
+  .explanation strong { color: #1F4E79; }
+  .explanation code { background: #dce8f5; padding: 1px 5px; border-radius: 3px; font-family: monospace; font-size: 13px; }
+
+  /* SECTION DIVIDER */
+  .section-divider {
+    display: flex; align-items: center; gap: 16px;
+    margin: 32px 0 20px; color: #2E75B6; font-weight: 700; font-size: 17px;
+  }
+  .section-divider::before, .section-divider::after {
+    content: ''; flex: 1; height: 2px; background: #dce8f5;
+  }
+
+  /* RESULTS */
+  #results-panel {
+    display: none; background: white; border-radius: 12px;
+    padding: 32px; margin-bottom: 28px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1); text-align: center;
+  }
+  #results-panel h2 { font-size: 24px; margin-bottom: 8px; color: #1F4E79; }
+  #grade-circle {
+    width: 120px; height: 120px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 32px; font-weight: 800; color: white;
+    margin: 20px auto; border: 6px solid white;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+  }
+  #grade-message { font-size: 16px; color: #555; margin-top: 10px; }
+  #grade-breakdown { margin-top: 20px; font-size: 14px; color: #666; }
+
+  /* FILTER TABS */
+  .filter-tabs { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+  .tab { padding: 7px 16px; border-radius: 20px; border: 2px solid #CBD5E1; font-size: 13px; font-weight: 600; cursor: pointer; background: white; transition: all 0.2s; }
+  .tab:hover { border-color: #2E75B6; color: #2E75B6; }
+  .tab.active { background: #2E75B6; border-color: #2E75B6; color: white; }
+
+  @media (max-width: 600px) {
+    .header { padding: 24px 20px; }
+    .container { padding: 20px 16px; }
+    .question-card { padding: 20px; }
+    #score-panel { gap: 16px; padding: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Key Scientific & Technological Issues in Business</h1>
+  <p>Interactive Mock Exam — Based on real sample exam questions</p>
+  <div class="meta">
+    <span class="badge">17 Questions</span>
+    <span class="badge">26 Points Total</span>
+    <span class="badge">Sessions 1–5</span>
+    <span class="badge warn">⚡ Exam Tomorrow</span>
+  </div>
+</div>
+<div class="progress-bar"><div class="progress-fill" id="progress"></div></div>
+
+<div class="container">
+
+  <div id="score-panel">
+    <div class="score-item"><div class="num" id="answered-count">0</div><div class="label">Answered</div></div>
+    <div class="score-item"><div class="num" id="correct-count" style="color:#375623">0</div><div class="label">Correct</div></div>
+    <div class="score-item"><div class="num" id="points-earned" style="color:#2E75B6">0</div><div class="label">Points Earned</div></div>
+    <div class="score-item"><div class="num" id="total-points">0</div><div class="label">/ 26 pts</div></div>
+    <div class="actions">
+      <button class="btn btn-secondary" onclick="showAll()">Show All</button>
+      <button class="btn btn-success" onclick="submitExam()">Submit Exam</button>
+      <button class="btn btn-primary" onclick="resetExam()">Reset</button>
+    </div>
+  </div>
+
+  <div id="results-panel">
+    <h2>Exam Results</h2>
+    <div id="grade-circle">–</div>
+    <div id="grade-message"></div>
+    <div id="grade-breakdown"></div>
+    <button class="btn btn-primary" style="margin-top:20px" onclick="resetExam()">Try Again</button>
+  </div>
+
+  <div class="filter-tabs">
+    <div class="tab active" onclick="filterQs('all',this)">All</div>
+    <div class="tab" onclick="filterQs('session1',this)">Session 1: Algorithms</div>
+    <div class="tab" onclick="filterQs('session2',this)">Session 2: Strings</div>
+    <div class="tab" onclick="filterQs('session3',this)">Session 3: Functions & Lists</div>
+    <div class="tab" onclick="filterQs('session4',this)">Session 4: OOP</div>
+    <div class="tab" onclick="filterQs('session5',this)">Session 5: Pandas</div>
+  </div>
+
+  <div id="questions-container"></div>
+</div>
+
+<script>
+const questions = [
+  // ===== SESSION 1: ALGORITHMS =====
+  {
+    id: 1, session: 'session1', pts: 1,
+    title: "Code Trace",
+    text: "What is the value displayed when the following code is executed?",
+    code: `x = 4
+y = x + 3       # y = 7
+x = y * 2       # x = 14
+result = x + y - 2  # result = 14 + 7 - 2
+print(result)`,
+    type: 'mcq',
+    options: ['A. 17', 'B. 19', 'C. 21', 'D. 14'],
+    correct: 1,
+    explanation: "<strong>Answer B: 19.</strong> Trace step by step: x=4 → y=4+3=7 → x=7×2=14 → result=14+7-2=19. Always trace in order, updating variables as you go."
+  },
+  {
+    id: 2, session: 'session1', pts: 1,
+    title: "While Loop Trace",
+    text: "How many times does the following loop print something?",
+    code: `i = 0
+while i < 10:
+    print(i)
+    i = i + 3`,
+    type: 'mcq',
+    options: ['A. 3 times', 'B. 4 times', 'C. 5 times', 'D. 10 times'],
+    correct: 1,
+    explanation: "<strong>Answer B: 4 times.</strong> i=0 (print), i=3 (print), i=6 (print), i=9 (print), i=12 → 12 < 10 is False → loop exits. Values printed: 0, 3, 6, 9."
+  },
+  {
+    id: 3, session: 'session1', pts: 1,
+    title: "Conditional Logic",
+    text: "A student has a grade of 11. What will the following code display?",
+    code: `grade = 11
+if grade >= 16:
+    print("Excellent")
+elif grade >= 12:
+    print("Good")
+elif grade >= 10:
+    print("Pass")
+else:
+    print("Fail")`,
+    type: 'mcq',
+    options: ['A. Excellent', 'B. Good', 'C. Pass', 'D. Fail'],
+    correct: 2,
+    explanation: "<strong>Answer C: Pass.</strong> 11 >= 16 → False. 11 >= 12 → False. 11 >= 10 → True → prints 'Pass'. Python stops at the first True condition."
+  },
+  {
+    id: 4, session: 'session1', pts: 1,
+    title: "Input Conversion",
+    text: "What does the following line do?",
+    code: `age = int(input("Enter your age: "))`,
+    type: 'mcq',
+    options: [
+      'A. Stores a string in age',
+      'B. Stores an integer in age after converting the user input',
+      'C. Causes an error because input() cannot be used with int()',
+      'D. Stores a decimal number in age'
+    ],
+    correct: 1,
+    explanation: "<strong>Answer B.</strong> <code>input()</code> always returns a string. <code>int()</code> converts it to an integer. So if the user types '25', age = 25 (the integer, not the string '25')."
+  },
+
+  // ===== SESSION 2: STRINGS =====
+  {
+    id: 5, session: 'session2', pts: 1,
+    title: "String Indexing",
+    text: 'What is the output of the following code?',
+    code: `s = "Python"
+print(s[0])
+print(s[3])
+print(len(s))`,
+    type: 'mcq',
+    options: ['A. P, h, 6', 'B. P, t, 6', 'C. y, h, 7', 'D. P, h, 7'],
+    correct: 0,
+    explanation: "<strong>Answer A.</strong> Indexing starts at 0: s[0]='P', s[1]='y', s[2]='t', s[3]='h', s[4]='o', s[5]='n'. len('Python')=6."
+  },
+  {
+    id: 6, session: 'session2', pts: 1,
+    title: "String Slicing",
+    text: 'What does sentence[2:6] return if sentence = "Hello World"?',
+    code: `sentence = "Hello World"
+print(sentence[2:6])`,
+    type: 'mcq',
+    options: ['A. "llo"', 'B. "llo "', 'C. "Hello"', 'D. "lo Wo"'],
+    correct: 1,
+    explanation: "<strong>Answer B: 'llo '</strong> Slicing [2:6] includes indices 2, 3, 4, 5 — that's 'l','l','o',' '. The end index (6) is EXCLUDED."
+  },
+  {
+    id: 7, session: 'session2', pts: 1,
+    title: "Iterating Through a String",
+    text: "What does the following code display if the user enters 'Hi'?",
+    code: `sentence = input("Enter: ")  # user types: Hi
+i = 0
+while i <= len(sentence) - 1:
+    print(sentence[i])
+    i = i + 1`,
+    type: 'mcq',
+    options: ['A. Hi', 'B. H then i (each on a separate line)', 'C. Hi on one line', 'D. Error'],
+    correct: 1,
+    explanation: "<strong>Answer B.</strong> The loop goes i=0: prints 'H', i=1: prints 'i'. Each print() call adds a new line. So 'H' and 'i' appear on separate lines."
+  },
+
+  // ===== SESSION 3: FUNCTIONS & LISTS =====
+  {
+    id: 8, session: 'session3', pts: 1,
+    title: "Function with Return",
+    text: "What is the output of the following code?",
+    code: `def addTwo(x):
+    return x + 2
+
+result = addTwo(5)
+print(result)
+print(addTwo(10))`,
+    type: 'mcq',
+    options: ['A. 5, 10', 'B. 7, 12', 'C. 7, 10', 'D. Error'],
+    correct: 1,
+    explanation: "<strong>Answer B: 7 then 12.</strong> addTwo(5) returns 5+2=7. addTwo(10) returns 10+2=12. The return value is what gets stored in 'result' or printed."
+  },
+  {
+    id: 9, session: 'session3', pts: 1,
+    title: "List Indexing — IndexError",
+    text: "What happens when the following code is executed?",
+    code: `example_list = ["a", "b", "c", "d"]
+print(example_list[4])`,
+    type: 'mcq',
+    options: [
+      'A. Prints "d"',
+      'B. Prints None',
+      'C. IndexError: list index out of range',
+      'D. Prints an empty string'
+    ],
+    correct: 2,
+    explanation: "<strong>Answer C: IndexError.</strong> The list has 4 elements at indices 0, 1, 2, 3. Index 4 does NOT exist. Python raises IndexError. Remember: last valid index = len(list) - 1 = 3."
+  },
+  {
+    id: 10, session: 'session3', pts: 1,
+    title: "For Loop vs While Loop",
+    text: "Which statement is TRUE about for and while loops in Python?",
+    type: 'mcq',
+    options: [
+      'A. A for loop can always be replaced by a while loop',
+      'B. A while loop cannot iterate through a list',
+      'C. A for loop automatically gives you the index of each element',
+      'D. while loops are only for counting'
+    ],
+    correct: 0,
+    explanation: "<strong>Answer A.</strong> A <code>for elt in list</code> loop can always be rewritten as a while loop. The reverse is also possible. The for loop is simpler when you need all elements; while is better when you need the index or want to stop early."
+  },
+  {
+    id: 11, session: 'session3', pts: 1,
+    title: "List append()",
+    text: "What is the output of the following code?",
+    code: `fruits = []
+fruits.append("apple")
+fruits.append("banana")
+fruits.append("cherry")
+print(len(fruits))
+print(fruits[1])`,
+    type: 'mcq',
+    options: ['A. 3, banana', 'B. 2, banana', 'C. 3, apple', 'D. 3, cherry'],
+    correct: 0,
+    explanation: "<strong>Answer A.</strong> We append 3 items, so len=3. fruits[0]='apple', fruits[1]='banana', fruits[2]='cherry'. Index 1 → 'banana'."
+  },
+  {
+    id: 12, session: 'session3', pts: 1,
+    title: "Function with List",
+    text: "What does the following function return when called with isPositive(-3)?",
+    code: `def isPositive(number):
+    if number > 0:
+        return True
+    else:
+        return False
+
+result = isPositive(-3)
+print(result)`,
+    type: 'mcq',
+    options: ['A. True', 'B. False', 'C. -3', 'D. Error'],
+    correct: 1,
+    explanation: "<strong>Answer B: False.</strong> -3 > 0 is False, so the else branch runs and returns False. The function returns a boolean value."
+  },
+
+  // ===== SESSION 4: OOP =====
+  {
+    id: 13, session: 'session4', pts: 1,
+    title: "OOP — Object and Class",
+    text: "Which statement about Object-Oriented Programming is CORRECT?",
+    type: 'mcq',
+    options: [
+      'A. An object is an instance of a class',
+      'B. A class is an instance of an object',
+      'C. Every class must have exactly one object',
+      'D. An object cannot have attributes'
+    ],
+    correct: 0,
+    explanation: "<strong>Answer A.</strong> A CLASS is the blueprint/template. An OBJECT is a specific instance created from that blueprint. You can create many objects from the same class, each with different attribute values."
+  },
+  {
+    id: 14, session: 'session4', pts: 1,
+    title: "Private Attributes",
+    text: "In the following class, which attribute is PRIVATE?",
+    code: `class Item:
+    def __init__(self, name, price):
+        self.name = name
+        self.__price = price`,
+    type: 'mcq',
+    options: [
+      'A. name',
+      'B. __price',
+      'C. Both name and __price',
+      'D. Neither — all attributes are public by default'
+    ],
+    correct: 1,
+    explanation: "<strong>Answer B: __price.</strong> The double underscore __ prefix makes an attribute PRIVATE. It cannot be accessed directly from outside the class. <code>self.name</code> is public (accessible anywhere). <code>self.__price</code> is private (only accessible inside the class methods)."
+  },
+  {
+    id: 15, session: 'session4', pts: 1,
+    title: "Accessing Private Attributes",
+    text: "How do you access the private attribute __name of an object item from OUTSIDE the class?",
+    code: `class Product:
+    def __init__(self, name):
+        self.__name = name
+
+    def getName(self):
+        return self.__name
+
+item = Product("Laptop")`,
+    type: 'mcq',
+    options: [
+      'A. item.getName()  ← uses the getter method',
+      'B. item.__name  ← direct access',
+      'C. item.name  ← drop the underscores',
+      'D. Product.getName()  ← use class name'
+    ],
+    correct: 0,
+    explanation: "<strong>Answer A: item.getName().</strong> Private attributes (__name) cannot be accessed directly from outside the class — doing so causes an AttributeError. You must use a getter method (getName()) which is defined inside the class and CAN access __name."
+  },
+  {
+    id: 16, session: 'session4', pts: 2,
+    title: "Complete OOP — Tracing",
+    text: "What is printed when the following code executes?",
+    code: `class Student:
+    def __init__(self, name, grade):
+        self.__name = name
+        self.__grade = grade
+
+    def getName(self):
+        return self.__name
+
+    def isPassing(self):
+        return self.__grade >= 10
+
+s = Student("Alice", 12)
+print(s.getName())
+print(s.isPassing())`,
+    type: 'mcq',
+    options: [
+      'A. Alice, True',
+      'B. Alice, False',
+      'C. Error — cannot access private attribute',
+      'D. __name, True'
+    ],
+    correct: 0,
+    explanation: "<strong>Answer A: Alice, True.</strong> s.getName() calls the getter which returns self.__name = 'Alice'. s.isPassing() checks 12 >= 10 → True. Methods defined INSIDE the class CAN access private attributes."
+  },
+
+  // ===== SESSION 5: PANDAS =====
+  {
+    id: 17, session: 'session5', pts: 10,
+    title: "DataFrame vs Series — THE Big Question (10 pts)",
+    text: "Which statement best describes a Pandas DataFrame?",
+    type: 'mcq',
+    options: [
+      'A. A 2D labeled data structure with rows AND columns, like a spreadsheet table',
+      'B. A 1D labeled array — a single column of data',
+      'C. A Python list that has been imported with pandas',
+      'D. A dictionary where all values must be the same type'
+    ],
+    correct: 0,
+    explanation: "<strong>Answer A — this question is worth 10 points!</strong> A <strong>DataFrame</strong> is 2-dimensional (rows AND columns) — think of a spreadsheet or table. A <strong>Series</strong> is 1-dimensional (a single column). When you do <code>df['column']</code>, you get a Series back. When you do <code>df[['col1','col2']]</code>, you get a DataFrame back."
+  },
+];
+
+// ===== STATE =====
+let state = {};
+questions.forEach(q => { state[q.id] = { answered: false, correct: false, ptsEarned: 0 }; });
+
+// ===== RENDER =====
+function renderQuestions(filter) {
+  const container = document.getElementById('questions-container');
+  container.innerHTML = '';
+  let lastSession = null;
+
+  const sessionLabels = {
+    session1: '🔁 Session 1 — Algorithms',
+    session2: '📝 Session 2 — String Processing',
+    session3: '⚙️ Session 3 — Functions & Lists',
+    session4: '🏗️ Session 4 — Object-Oriented Programming',
+    session5: '📊 Session 5 — Pandas'
+  };
+
+  questions.forEach(q => {
+    if (filter !== 'all' && q.session !== filter) return;
+
+    if (q.session !== lastSession) {
+      const divider = document.createElement('div');
+      divider.className = 'section-divider';
+      divider.textContent = sessionLabels[q.session] || q.session;
+      container.appendChild(divider);
+      lastSession = q.session;
+    }
+
+    const card = document.createElement('div');
+    card.className = 'question-card';
+    card.id = 'q-card-' + q.id;
+
+    // Build header
+    let html = `
+      <div class="q-header">
+        <div class="q-num">${q.id}</div>
+        <div class="q-title">${q.title}</div>
+        <div class="q-pts"><span class="pts-val">${q.pts}</span> pt${q.pts>1?'s':''}</div>
+      </div>
+      <div class="q-text">${q.text}</div>
+    `;
+
+    // Code block
+    if (q.code) {
+      html += `<pre class="code-block">${highlightCode(q.code)}</pre>`;
+    }
+
+    // Options
+    if (q.type === 'mcq') {
+      html += '<div class="options">';
+      q.options.forEach((opt, idx) => {
+        const letter = String.fromCharCode(65 + idx);
+        html += `
+          <label class="option-label" id="opt-${q.id}-${idx}" onclick="selectOption(${q.id}, ${idx})">
+            <input type="radio" name="q${q.id}" value="${idx}">
+            <span class="option-letter">${letter}</span>
+            <span>${opt.replace(/^[A-D]\.\s*/, '')}</span>
+          </label>`;
+      });
+      html += '</div>';
+    }
+
+    // Footer
+    html += `
+      <div class="q-footer">
+        <button class="check-btn" id="check-${q.id}" onclick="checkAnswer(${q.id})" disabled>Check Answer</button>
+        <div class="feedback" id="fb-${q.id}"></div>
+      </div>
+      <div class="explanation" id="exp-${q.id}">${q.explanation}</div>
+    `;
+
+    card.innerHTML = html;
+    container.appendChild(card);
+
+    // Restore state
+    if (state[q.id].answered) restoreAnswerUI(q);
+  });
+}
+
+function highlightCode(code) {
+  const keywords = ['def','class','return','if','elif','else','while','for','in','import','print','input','not','and','or','True','False','None','append','self'];
+  let escaped = code.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  // Comments
+  escaped = escaped.replace(/(#[^\n]*)/g, '<span class="cmt">$1</span>');
+  // Strings
+  escaped = escaped.replace(/(["'][^"'\n]*["'])/g, '<span class="str">$1</span>');
+  // Numbers
+  escaped = escaped.replace(/\b(\d+\.?\d*)\b/g, '<span class="num">$1</span>');
+  // Keywords
+  keywords.forEach(kw => {
+    escaped = escaped.replace(new RegExp('\\b' + kw + '\\b', 'g'), `<span class="kw">${kw}</span>`);
+  });
+  return escaped;
+}
+
+function selectOption(qId, idx) {
+  document.getElementById('check-' + qId).disabled = false;
+  document.querySelectorAll(`[id^="opt-${qId}-"]`).forEach((el, i) => {
+    el.classList.toggle('selected', i === idx);
+  });
+}
+
+function checkAnswer(qId) {
+  const q = questions.find(x => x.id === qId);
+  if (!q) return;
+
+  let selected = -1;
+  if (q.type === 'mcq') {
+    const radios = document.querySelectorAll(`input[name="q${qId}"]`);
+    radios.forEach((r, i) => { if (r.checked) selected = i; });
+    // If using click approach
+    document.querySelectorAll(`[id^="opt-${qId}-"]`).forEach((el, i) => {
+      if (el.classList.contains('selected')) selected = i;
+    });
+  }
+
+  if (selected === -1) return;
+
+  const isCorrect = selected === q.correct;
+  state[qId] = { answered: true, correct: isCorrect, ptsEarned: isCorrect ? q.pts : 0 };
+
+  // Style options
+  document.querySelectorAll(`[id^="opt-${qId}-"]`).forEach((el, i) => {
+    el.style.pointerEvents = 'none';
+    if (i === q.correct) el.classList.add('correct-ans');
+    else if (i === selected && !isCorrect) el.classList.add('wrong-ans');
+    // Disable radio
+    const radio = el.querySelector('input');
+    if (radio) radio.disabled = true;
+  });
+
+  // Card style
+  const card = document.getElementById('q-card-' + qId);
+  card.classList.add(isCorrect ? 'correct' : 'incorrect');
+
+  // Feedback
+  const fb = document.getElementById('fb-' + qId);
+  fb.className = 'feedback ' + (isCorrect ? 'correct' : 'incorrect');
+  fb.textContent = isCorrect ? '✓ Correct! +' + q.pts + ' pt' + (q.pts>1?'s':'') : '✗ Incorrect';
+
+  // Explanation
+  document.getElementById('exp-' + qId).classList.add('visible');
+
+  // Disable check button
+  document.getElementById('check-' + qId).disabled = true;
+
+  updateScore();
+}
+
+function restoreAnswerUI(q) {
+  // Called after re-render to restore answered state
+  // (handled by checkAnswer in normal flow)
+}
+
+function updateScore() {
+  let answered = 0, correct = 0, pts = 0;
+  Object.values(state).forEach(s => {
+    if (s.answered) { answered++; if (s.correct) { correct++; pts += s.ptsEarned; } }
+  });
+  document.getElementById('answered-count').textContent = answered;
+  document.getElementById('correct-count').textContent = correct;
+  document.getElementById('points-earned').textContent = pts;
+  document.getElementById('total-points').textContent = 26;
+
+  const progress = (answered / questions.length) * 100;
+  document.getElementById('progress').style.width = progress + '%';
+}
+
+function showAll() {
+  questions.forEach(q => {
+    const exp = document.getElementById('exp-' + q.id);
+    if (exp) exp.classList.add('visible');
+    // Highlight correct answers
+    document.querySelectorAll(`[id^="opt-${q.id}-"]`).forEach((el, i) => {
+      if (i === q.correct) el.classList.add('correct-ans');
+    });
+  });
+}
+
+function submitExam() {
+  let pts = 0;
+  Object.values(state).forEach(s => { pts += s.ptsEarned; });
+  const pct = Math.round((pts / 26) * 100);
+
+  const panel = document.getElementById('results-panel');
+  panel.style.display = 'block';
+  panel.scrollIntoView({ behavior: 'smooth' });
+
+  const circle = document.getElementById('grade-circle');
+  let color, msg;
+  if (pct >= 80) { color = '#375623'; msg = '🎉 Excellent! You are well prepared for the exam.'; }
+  else if (pct >= 60) { color = '#2E75B6'; msg = '👍 Good work! Review the explanations for wrong answers.'; }
+  else if (pct >= 40) { color = '#D68910'; msg = '📚 Keep studying! Focus on Sessions 3 and 4.'; }
+  else { color = '#C00000'; msg = '💪 Review the course notes and try again!'; }
+
+  circle.style.background = color;
+  circle.textContent = pct + '%';
+  document.getElementById('grade-message').textContent = msg;
+
+  const answered = Object.values(state).filter(s => s.answered).length;
+  const correct = Object.values(state).filter(s => s.correct).length;
+  document.getElementById('grade-breakdown').innerHTML =
+    `<strong>${pts}</strong> / 26 points &nbsp;|&nbsp; <strong>${correct}</strong> correct answers &nbsp;|&nbsp; <strong>${answered}</strong> / ${questions.length} attempted`;
+}
+
+function resetExam() {
+  questions.forEach(q => { state[q.id] = { answered: false, correct: false, ptsEarned: 0 }; });
+  document.getElementById('results-panel').style.display = 'none';
+  updateScore();
+  const activeTab = document.querySelector('.tab.active');
+  const filter = activeTab ? activeTab.getAttribute('onclick').match(/'(\w+)'/)?.[1] : 'all';
+  renderQuestions(filter || 'all');
+}
+
+function filterQs(session, el) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  renderQuestions(session);
+}
+
+// Init
+renderQuestions('all');
+updateScore();
+</script>
+</body>
+</html>
